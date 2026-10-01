@@ -31,6 +31,12 @@ async function askAI(question) {
     const loadingMsgId = Date.now();
     addMessage('Escribiendo...', 'ai');
 
+    if (!API_KEY || API_KEY === "pegar clave aqui") {
+        chatBox.lastChild.textContent = "Error: Por favor, configura tu API Key en config.js.";
+        chatBox.lastChild.classList.replace('ai-msg', 'error-msg');
+        return;
+    }
+
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -46,7 +52,9 @@ async function askAI(question) {
 
         // Gestionar respuesta incorrecta
         if (!response.ok) {
-            throw new Error(`Error en la API: ${response.statusText}`);
+            const errorData = await response.json();
+            const apiMessage = errorData.error?.message || response.statusText;
+            throw new Error(`Error de la API: ${apiMessage}`);
         }
 
         const data = await response.json();
@@ -55,6 +63,7 @@ async function askAI(question) {
 
     } catch (error) {
         console.error("Error:", error);
+        chatBox.lastChild.textContent = error.message;
         chatBox.lastChild.classList.replace('ai-msg', 'error-msg');
     }
 }
